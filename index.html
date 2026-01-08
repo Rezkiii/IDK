@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Something inside</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #fce4ec;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* --- 1. Bagian Belakang Amplop --- */
+        .envelope {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background-color: #c0392b;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+        }
+
+        /* --- 2. Surat / Kertas (BERISI GAMBAR) --- */
+        .card {
+            position: absolute;
+            bottom: 0; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 260px;  /* Ukuran lebih kecil dari amplop */
+            height: 170px; /* Ukuran lebih kecil dari amplop */
+            background-color: #fff;
+            
+            /* Padding dikurangi agar gambar lebih penuh, kayak polaroid */
+            padding: 5px; 
+            
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            transition: bottom 1s ease-in-out, z-index 0s 1s;
+            z-index: 1; 
+            border-radius: 5px;
+            box-sizing: border-box;
+            overflow: hidden; /* Agar gambar tidak keluar dari rounded corner */
+        }
+
+        /* Styling khusus untuk Gambar di dalam surat */
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Gambar akan mengisi kotak tanpa gepeng */
+            display: block;
+            border-radius: 3px;
+        }
+
+        /* --- 3. Saku Depan (Pocket) --- */
+        .pocket {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 100px 150px 100px 150px; 
+            border-color: transparent #c0392b #e74c3c #c0392b;
+            border-radius: 0 0 10px 10px;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* --- 4. Tutup Amplop (Flap) --- */
+        .flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 110px 150px 0 150px;
+            border-color: #a93226 transparent transparent transparent;
+            transform-origin: top;
+            transition: transform 0.6s ease 0.2s, z-index 0.5s;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        /* --- Animasi --- */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shaking {
+            animation: shake 0.5s;
+        }
+
+        .envelope-wrapper.open .flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .envelope-wrapper.open .card {
+            bottom: 120px; /* Posisi naik ke atas */
+            z-index: 5;
+            transition-delay: 0.5s;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: -50px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #888;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <audio id="weddingMusic">
+        <source src="audio.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="envelope-wrapper" id="envelopeWrapper">
+        <div class="envelope">
+            
+            <div class="card">
+                <img src="images.jpeg" alt="Undangan Pernikahan">
+            </div>
+
+            <div class="pocket"></div>
+
+            <div class="flap"></div>
+
+        </div>
+        <div class="hint">Klik amplop untuk membuka</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const wrapper = document.getElementById('envelopeWrapper');
+            const music = document.getElementById('weddingMusic');
+            const hint = document.querySelector('.hint');
+            let isOpened = false;
+
+            wrapper.addEventListener('click', function() {
+                if (isOpened) return;
+
+                // 1. Getar
+                wrapper.classList.add('shaking');
+
+                // 2. Play Audio
+                music.play().catch(e => console.log("Audio error:", e));
+                
+                if(navigator.vibrate) navigator.vibrate(200);
+
+                // 3. Buka Amplop
+                setTimeout(() => {
+                    wrapper.classList.remove('shaking');
+                    wrapper.classList.add('open');
+                    isOpened = true;
+                    hint.style.display = 'none';
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>
