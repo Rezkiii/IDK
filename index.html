@@ -1,135 +1,125 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Something inside</title>
+    <title>Invitation?</title>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #fce4ec;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* --- Reset & Base Style --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Courier New', Courier, monospace; /* Font ala terminal */
+            background-color: #fce4ec; /* Latar belakang pink awal */
             overflow: hidden;
         }
 
-        .envelope-wrapper {
-            position: relative;
-            cursor: pointer;
+        /* Class utilitas untuk menyembunyikan elemen */
+        .hidden {
+            display: none !important;
         }
 
-        /* --- 1. Bagian Belakang Amplop --- */
-        .envelope {
-            position: relative;
+        /* --- 1. Tampilan Awal (Amplop Trigger) --- */
+        #initial-trigger {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        .envelope-teaser {
             width: 300px;
             height: 200px;
             background-color: #c0392b;
-            border-radius: 0 0 10px 10px;
+            border-radius: 10px;
             box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        
+        .envelope-teaser:hover {
+            transform: scale(1.05);
+        }
+        
+        .hint {
+            margin-top: 20px;
+            color: #888;
+            animation: pulse 1.5s infinite;
         }
 
-        /* --- 2. Surat / Kertas (BERISI GAMBAR) --- */
-        .card {
-            position: absolute;
-            bottom: 0; 
-            left: 50%;
-            transform: translateX(-50%);
-            width: 260px;  /* Ukuran lebih kecil dari amplop */
-            height: 170px; /* Ukuran lebih kecil dari amplop */
-            background-color: #fff;
-            
-            /* Padding dikurangi agar gambar lebih penuh, kayak polaroid */
-            padding: 5px; 
-            
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-            transition: bottom 1s ease-in-out, z-index 0s 1s;
-            z-index: 1; 
-            border-radius: 5px;
-            box-sizing: border-box;
-            overflow: hidden; /* Agar gambar tidak keluar dari rounded corner */
-        }
-
-        /* Styling khusus untuk Gambar di dalam surat */
-        .card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Gambar akan mengisi kotak tanpa gepeng */
-            display: block;
-            border-radius: 3px;
-        }
-
-        /* --- 3. Saku Depan (Pocket) --- */
-        .pocket {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 100px 150px 100px 150px; 
-            border-color: transparent #c0392b #e74c3c #c0392b;
-            border-radius: 0 0 10px 10px;
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        /* --- 4. Tutup Amplop (Flap) --- */
-        .flap {
-            position: absolute;
+        /* --- 2. Layar Prank (Hacker Screen) --- */
+        #prank-screen {
+            position: fixed;
             top: 0;
             left: 0;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-width: 110px 150px 0 150px;
-            border-color: #a93226 transparent transparent transparent;
-            transform-origin: top;
-            transition: transform 0.6s ease 0.2s, z-index 0.5s;
-            z-index: 4;
-            pointer-events: none;
+            width: 100%;
+            height: 100%;
+            background-color: #000; /* Layar hitam */
+            color: #0f0; /* Teks hijau terang */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
         }
 
-        /* --- Animasi --- */
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        h1.hacker-text {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            text-align: center;
         }
 
-        .shaking {
-            animation: shake 0.5s;
+        /* Progress Bar Container */
+        .progress-container {
+            width: 80%;
+            max-width: 600px;
+            height: 30px;
+            border: 2px solid #0f0;
+            padding: 3px;
+            position: relative;
         }
 
-        .envelope-wrapper.open .flap {
-            transform: rotateX(180deg);
-            z-index: 1;
+        /* Isi Progress Bar yang bergerak */
+        .progress-fill {
+            height: 100%;
+            width: 0%; /* Mulai dari 0 */
+            background-color: #0f0;
+            transition: width 0.1s linear;
         }
 
-        .envelope-wrapper.open .card {
-            bottom: 120px; /* Posisi naik ke atas */
-            z-index: 5;
-            transition-delay: 0.5s;
+        .percentage-text {
+            margin-top: 15px;
+            font-size: 1.5rem;
         }
 
-        .hint {
-            position: absolute;
-            bottom: -50px;
+        /* --- 3. Layar Akhir (Gambar) --- */
+        #final-screen {
+            position: fixed;
+            top: 0;
             left: 0;
             width: 100%;
-            text-align: center;
-            color: #888;
-            font-weight: bold;
-            animation: pulse 1.5s infinite;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #final-screen img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Gambar pas di layar tanpa terpotong */
         }
 
         @keyframes pulse {
@@ -141,50 +131,90 @@
 </head>
 <body>
 
-    <audio id="weddingMusic">
-        <source src="audio.mp3" type="audio/mpeg">
-    </audio>
-
-    <div class="envelope-wrapper" id="envelopeWrapper">
-        <div class="envelope">
-            
-            <div class="card">
-                <img src="images.jpeg" alt="Undangan Pernikahan">
-            </div>
-
-            <div class="pocket"></div>
-
-            <div class="flap"></div>
-
+    <div id="initial-trigger">
+        <div class="envelope-teaser" id="startPrankBtn">
+            Tap to Open
         </div>
-        <div class="hint">Klik amplop untuk membuka</div>
+        <div class="hint">Ada pesan rahasia...</div>
     </div>
+
+
+    <div id="prank-screen" class="hidden">
+        <h1 class="hacker-text">Accessing personal data...</h1>
+        <p style="color:#0f0; margin-bottom: 5px;">BYPASSING SECURITY FIREWALL...</p>
+        
+        <div class="progress-container">
+            <div class="progress-fill" id="progFill"></div>
+        </div>
+        <div class="percentage-text" id="progText">0%</div>
+    </div>
+
+
+    <div id="final-screen" class="hidden">
+        <img src="images.jpeg" alt="Pranked!">
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const wrapper = document.getElementById('envelopeWrapper');
-            const music = document.getElementById('weddingMusic');
-            const hint = document.querySelector('.hint');
-            let isOpened = false;
+            const triggerBtn = document.getElementById('startPrankBtn');
+            const initialScreen = document.getElementById('initial-trigger');
+            const prankScreen = document.getElementById('prank-screen');
+            const finalScreen = document.getElementById('final-screen');
+            const progFill = document.getElementById('progFill');
+            const progText = document.getElementById('progText');
 
-            wrapper.addEventListener('click', function() {
-                if (isOpened) return;
+            // --- Fungsi untuk meminta Full Screen ---
+            function openFullscreen() {
+                const elem = document.documentElement; // Elemen <html>
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => {
+                        console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                        // Jika full screen gagal/ditolak user, prank tetap jalan di window biasa.
+                    });
+                } else if (elem.webkitRequestFullscreen) { /* Safari */
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE11 */
+                    elem.msRequestFullscreen();
+                }
+            }
 
-                // 1. Getar
-                wrapper.classList.add('shaking');
+            // --- Event Listener Klik ---
+            triggerBtn.addEventListener('click', () => {
+                // 1. Coba masuk mode Full Screen
+                openFullscreen();
 
-                // 2. Play Audio
-                music.play().catch(e => console.log("Audio error:", e));
-                
-                if(navigator.vibrate) navigator.vibrate(200);
+                // 2. Sembunyikan layar awal, munculkan layar hacker
+                initialScreen.classList.add('hidden');
+                prankScreen.classList.remove('hidden');
 
-                // 3. Buka Amplop
-                setTimeout(() => {
-                    wrapper.classList.remove('shaking');
-                    wrapper.classList.add('open');
-                    isOpened = true;
-                    hint.style.display = 'none';
-                }, 500);
+                // 3. Mulai simulasi progress bar
+                let progress = 0;
+                // Kecepatan interval (semakin kecil angkanya, semakin cepat loadingnya)
+                const intervalSpeed = 70; // milidetik
+
+                const simulation = setInterval(() => {
+                    // Tambahkan progress (kadang 1, kadang 2 biar terlihat alami)
+                    progress += Math.floor(Math.random() * 2) + 1; 
+
+                    if (progress > 100) progress = 100;
+
+                    // Update tampilan
+                    progFill.style.width = `${progress}%`;
+                    progText.textContent = `${progress}%`;
+
+                    // Cek jika sudah selesai
+                    if (progress === 100) {
+                        clearInterval(simulation);
+                        
+                        // Tunggu sebentar di 100% sebelum muncul gambar (efek dramatis)
+                        setTimeout(() => {
+                            prankScreen.classList.add('hidden');
+                            finalScreen.classList.remove('hidden');
+                        }, 800);
+                    }
+
+                }, intervalSpeed);
             });
         });
     </script>
