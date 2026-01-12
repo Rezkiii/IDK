@@ -22,7 +22,6 @@
             padding: 15px 40px; font-size: 24px; background: #00ff00; border: none; color: black;
             cursor: pointer; font-weight: bold; margin-top: 20px; box-shadow: 0 0 15px #00ff00;
         }
-        #start-btn:hover { background: white; }
 
         #info {
             position: absolute; top: 10px; width: 100%; text-align: center; 
@@ -39,15 +38,29 @@
             pointer-events: auto; cursor: pointer; border: 2px solid white; z-index: 60;
         }
 
-        /* CONTROLS */
-        #joystick-zone {
-            position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; z-index: 20; display: none; pointer-events: auto;
+        /* --- NEW MOBILE CONTROLS --- */
+        .mobile-btn-group {
+            position: absolute; bottom: 40px; left: 30px;
+            display: none; /* Hidden by default */
+            flex-direction: column; gap: 20px;
+            z-index: 30; pointer-events: auto;
         }
+        .move-btn {
+            width: 70px; height: 70px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white; border-radius: 10px;
+            color: white; font-size: 30px; font-weight: bold;
+            display: flex; justify-content: center; align-items: center;
+            user-select: none; backdrop-filter: blur(2px);
+        }
+        .move-btn:active { background: rgba(255, 255, 255, 0.5); }
+
+        /* Tombol Dash (Kanan Bawah) */
         #dash-btn {
             position: absolute; bottom: 60px; right: 40px; width: 80px; height: 80px; 
             background: rgba(0, 255, 255, 0.3); border: 2px solid cyan; border-radius: 50%; 
             color: cyan; font-size: 30px; line-height: 80px; text-align: center;
-            font-weight: bold; cursor: pointer; user-select: none; z-index: 20; display: none; pointer-events: auto;
+            font-weight: bold; cursor: pointer; user-select: none; z-index: 30; display: none; pointer-events: auto;
             backdrop-filter: blur(2px); box-shadow: 0 0 10px cyan;
         }
         #dash-btn:active { background: rgba(0, 255, 255, 0.8); color: white; }
@@ -59,8 +72,8 @@
 <body>
 
     <div id="start-screen">
-        <h1 style="color:white; text-align:center;">Test</h1>
-        <p style="color:#aaa; text-align:center;">Ehe</p>
+        <h1 style="color:white; text-align:center;">Testing</h1>
+        <p style="color:#aaa; text-align:center;">Ehe<br>Swipe layar untuk putar.</p>
         <button id="start-btn">MULAI GAME</button>
     </div>
 
@@ -71,12 +84,13 @@
         <div id="dash-status">DASH READY</div>
     </div>
     
-    <div id="joystick-zone"></div>
+    <div class="mobile-btn-group" id="mov-controls">
+        <div class="move-btn" id="btn-fwd">↑</div>
+        <div class="move-btn" id="btn-bwd">↓</div>
+    </div>
     <div id="dash-btn">⚡</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.9.0/nipplejs.min.js"></script>
-
     <script>
         // --- GAME VARIABLES ---
         let gameState = 'WAITING'; 
@@ -95,7 +109,7 @@
         renderer.shadowMap.enabled = true;
         document.body.appendChild(renderer.domElement);
 
-        // --- 2. AUDIO SETUP (REAL MP3) ---
+        // --- 2. AUDIO SETUP ---
         const bossAudio = new Audio('boss.mp3'); 
         bossAudio.loop = true; 
         bossAudio.volume = 0.6; 
@@ -105,17 +119,16 @@
         const startScreen = document.getElementById('start-screen');
 
         startBtn.addEventListener('click', () => {
-            // Pancing Audio
             bossAudio.play().then(() => {
-                bossAudio.pause();
-                bossAudio.currentTime = 0;
+                bossAudio.pause(); bossAudio.currentTime = 0;
             }).catch(e => console.log("Audio warning: " + e));
 
             startScreen.style.display = 'none';
             gameState = 'EXPLORING';
             
+            // Cek jika di mobile, tampilkan kontrol baru
             if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-                document.getElementById('joystick-zone').style.display = 'block';
+                document.getElementById('mov-controls').style.display = 'flex';
                 document.getElementById('dash-btn').style.display = 'block';
                 document.getElementById('dash-status').style.display = 'block';
             }
@@ -160,7 +173,6 @@
         floor.receiveShadow = true;
         scene.add(floor);
 
-        // Dinding Lorong
         for(let i = 0; i < 25; i++) {
             const zPos = -i * 5; 
             createWall(-6, 2, zPos, 2, 4, 5, 0x444444); 
@@ -169,37 +181,28 @@
         createWall(0, 2, 5, 14, 4, 2, 0x444444); 
         createWall(0, 2, -125, 14, 4, 2, 0x444444); 
 
-        // --- GENERATE INITIAL LEVEL (RAMAI TAPI RAPI) ---
         function generateInitialLevel() {
-            // Kita buat obstacle dari Z -10 sampai -100
-            for(let z = -10; z > -100; z -= 8) { // Jarak per baris obstacle 8 meter
-                
-                // Pola 1: Kiri dan Kanan (Tengah kosong)
+            for(let z = -10; z > -100; z -= 8) {
                 if (z % 16 === 0) {
-                    createWall(-3, 1, z, 2, 2, 2, 0x550000); // Merah Gelap
+                    createWall(-3, 1, z, 2, 2, 2, 0x550000); 
                     createWall(3, 1, z, 2, 2, 2, 0x550000);
-                } 
-                // Pola 2: Tengah (Samping kosong)
-                else {
+                } else {
                     createWall(0, 1, z, 3, 2, 1, 0x550000);
                 }
             }
         }
-        generateInitialLevel(); // Panggil saat game start
+        generateInitialLevel();
 
-        // --- GENERATE CHAOS (SAAT BOSS MUNCUL) ---
         function generateChaosMap() {
-            const numberOfObstacles = 30; // Tambah 30 obstacle baru secara acak
+            const numberOfObstacles = 30; 
             for(let i=0; i<numberOfObstacles; i++) {
                 const randX = (Math.random() * 10) - 5; 
                 const randZ = -(Math.random() * 90) - 10; 
-                
                 const distToPlayer = Math.sqrt(Math.pow(randX - playerGroup.position.x, 2) + Math.pow(randZ - playerGroup.position.z, 2));
 
                 if(distToPlayer > 8) { 
                     const w = Math.random() * 2 + 1;
                     const h = Math.random() * 3 + 1;
-                    // Warna Merah Terang untuk obstacle chaos
                     createWall(randX, h/2, randZ, w, h, 1, 0xff0000); 
                 }
             }
@@ -220,14 +223,57 @@
         bossGroup.position.set(0, -50, 0); 
         scene.add(bossGroup);
 
-        // --- 7. INPUT & LOGIC ---
+        // --- 7. INPUT & LOGIC (UPDATED) ---
         let moveForward = false, moveBackward = false, turnLeft = false, turnRight = false;
-        let joyVector = { x: 0, y: 0 };
         let canDash = true;
         let isDashing = false;
         const normalSpeed = 0.15;
         const dashSpeed = 0.6; 
         let currentSpeed = normalSpeed;
+
+        // --- NEW MOBILE TOUCH LOGIC ---
+        let touchStartX = 0;
+        const touchSensitivity = 0.007; // Atur sensitivitas putaran di sini
+
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            // A. Tombol Maju Mundur
+            const btnFwd = document.getElementById('btn-fwd');
+            const btnBwd = document.getElementById('btn-bwd');
+            const dashBtn = document.getElementById('dash-btn');
+
+            btnFwd.addEventListener('touchstart', (e) => { e.preventDefault(); moveForward = true; });
+            btnFwd.addEventListener('touchend', (e) => { e.preventDefault(); moveForward = false; });
+            
+            btnBwd.addEventListener('touchstart', (e) => { e.preventDefault(); moveBackward = true; });
+            btnBwd.addEventListener('touchend', (e) => { e.preventDefault(); moveBackward = false; });
+
+            dashBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
+
+            // B. Swipe Layar untuk Rotasi
+            document.addEventListener('touchstart', (e) => {
+                // Hanya lacak sentuhan pertama untuk rotasi
+                if(e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                }
+            }, false);
+
+            document.addEventListener('touchmove', (e) => {
+                 if(gameState === 'LOSE' || gameState === 'WIN') return;
+                 // Jika ada satu jari menggeser di layar
+                 if(e.touches.length === 1) {
+                     const touchCurrentX = e.touches[0].clientX;
+                     const deltaX = touchCurrentX - touchStartX;
+                     
+                     // Putar karakter berdasarkan jarak geser
+                     // Geser kiri (delta negatif) = putar positif (kiri)
+                     playerGroup.rotation.y -= deltaX * touchSensitivity;
+                     
+                     // Reset posisi awal untuk frame berikutnya agar gerakan mulus
+                     touchStartX = touchCurrentX;
+                 }
+            }, false);
+        }
+        // ---------------------------
 
         function triggerDash() {
             if (!canDash || (gameState !== 'FIGHT' && gameState !== 'EXPLORING')) return;
@@ -240,12 +286,13 @@
             setTimeout(() => { canDash = true; document.getElementById('dash-status').innerText = "DASH READY"; document.getElementById('dash-status').style.color = "cyan"; }, 1200);
         }
 
+        // Keyboard Controls (Tetap ada untuk PC)
         document.addEventListener('keydown', (e) => {
             if(gameState === 'LOSE' || gameState === 'WIN') return;
             switch (e.code) {
                 case 'KeyW': moveForward = true; break;
                 case 'KeyS': moveBackward = true; break;
-                case 'KeyA': turnLeft = true; break;
+                case 'KeyA': turnLeft = true; break; // Masih bisa pakai A/D di PC
                 case 'KeyD': turnRight = true; break;
                 case 'ShiftLeft': triggerDash(); break;
             }
@@ -258,14 +305,6 @@
                 case 'KeyD': turnRight = false; break;
             }
         });
-
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            const joyZone = document.getElementById('joystick-zone');
-            const manager = nipplejs.create({ zone: joyZone, mode: 'static', position: { left: '50%', top: '50%' }, color: '#00ff00' });
-            manager.on('move', (evt, data) => { if (data.vector) { joyVector.x = data.vector.x; joyVector.y = data.vector.y; } });
-            manager.on('end', () => { joyVector = { x: 0, y: 0 }; });
-            document.getElementById('dash-btn').addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
-        }
 
         // --- 8. COLLISION & GAME LOOP ---
         const playerBox = new THREE.Box3();
@@ -288,12 +327,9 @@
             
             bossGroup.position.set(0, 2, -120); 
 
-            // PLAY AUDIO MP3
-            bossAudio.play().catch(error => {
-                console.log("Gagal memutar audio (Cek Live Server): " + error);
-            });
+            bossAudio.play().catch(error => { console.log("Audio Fail: " + error); });
 
-            generateChaosMap(); // Tambah obstacle lagi
+            generateChaosMap();
             
             const info = document.getElementById('info');
             info.innerHTML = "OBSTACLE MUNCUL! LARI!";
@@ -311,9 +347,7 @@
         function gameWin() {
             gameState = 'WIN';
             clearInterval(timerInterval);
-            bossAudio.pause();
-            bossAudio.currentTime = 0;
-
+            bossAudio.pause(); bossAudio.currentTime = 0;
             const msg = document.getElementById('message-box');
             msg.innerHTML = "YOU SURVIVED!<br><span style='font-size:20px; color:green'>Klik untuk Main Lagi</span>";
             msg.style.display = "block";
@@ -325,9 +359,7 @@
             if(gameState === 'LOSE') return;
             gameState = 'LOSE'; 
             clearInterval(timerInterval);
-            bossAudio.pause();
-            bossAudio.currentTime = 0;
-
+            bossAudio.pause(); bossAudio.currentTime = 0;
             const msg = document.getElementById('message-box');
             msg.innerHTML = "YOU DIED<br><span style='font-size:20px; color:red'>Klik untuk Restart</span>";
             msg.style.display = "block";
@@ -342,15 +374,16 @@
             requestAnimationFrame(animate);
 
             if (gameState === 'EXPLORING' || gameState === 'FIGHT') {
-                if (turnLeft || joyVector.x < -0.1) playerGroup.rotation.y += 0.05;
-                if (turnRight || joyVector.x > 0.1) playerGroup.rotation.y -= 0.05;
+                // Keyboard turning still works on PC
+                if (turnLeft) playerGroup.rotation.y += 0.05;
+                if (turnRight) playerGroup.rotation.y -= 0.05;
+                // Note: Touch rotation is handled directly in the touchmove event listener
 
                 let drive = 0;
                 if (isDashing) drive = 1;
                 else {
                     if (moveForward) drive = 1;
                     if (moveBackward) drive = -1;
-                    if (Math.abs(joyVector.y) > 0.1) drive = joyVector.y;
                 }
 
                 if (Math.abs(drive) > 0) {
