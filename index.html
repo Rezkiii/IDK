@@ -11,18 +11,36 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;
         }
         
-        /* Start Screen */
+        /* --- START SCREEN & INSTRUCTIONS --- */
         #start-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 50;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             pointer-events: auto;
         }
-        #start-btn {
-            padding: 15px 40px; font-size: 24px; background: #00ff00; border: none; color: black;
-            cursor: pointer; font-weight: bold; margin-top: 20px; box-shadow: 0 0 15px #00ff00;
+        
+        .instruction-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ccc;
+            max-width: 90%;
+            font-size: 14px;
         }
+        .instruction-box h3 { color: #00ff00; margin-top: 0; text-shadow: 0 0 5px #00ff00; }
+        .key { color: white; font-weight: bold; background: #333; padding: 2px 6px; border-radius: 4px; border: 1px solid #555; }
+        
+        #start-btn {
+            padding: 15px 50px; font-size: 24px; background: #00ff00; border: none; color: black;
+            cursor: pointer; font-weight: bold; box-shadow: 0 0 15px #00ff00; border-radius: 50px;
+            transition: transform 0.1s;
+        }
+        #start-btn:active { transform: scale(0.95); background: white; }
 
+        /* --- GAME UI --- */
         #info {
             position: absolute; top: 10px; width: 100%; text-align: center; 
             color: #00ff00; text-shadow: 0px 0px 5px #00ff00; font-size: 14px;
@@ -41,8 +59,7 @@
         /* --- MOBILE CONTROLS --- */
         .mobile-btn-group {
             position: absolute; bottom: 40px; left: 30px;
-            display: none; /* Hidden by default */
-            flex-direction: column; gap: 20px;
+            display: none; flex-direction: column; gap: 20px;
             z-index: 30; pointer-events: auto;
         }
         .move-btn {
@@ -51,18 +68,10 @@
             border: 2px solid rgba(255,255,255,0.5); border-radius: 15px;
             color: white; font-size: 35px; font-weight: bold;
             display: flex; justify-content: center; align-items: center;
-            user-select: none; backdrop-filter: blur(4px);
-            /* Penting agar browser tidak menganggap ini gesture zoom/scroll */
-            touch-action: none; 
+            user-select: none; backdrop-filter: blur(4px); touch-action: none; 
         }
         .move-btn:active { background: rgba(0, 255, 0, 0.3); border-color: #00ff00; }
 
-        /* Area Kanan untuk Rotasi (Invisible Zone) - Opsional agar lebih rapi */
-        #rotation-zone {
-            position: absolute; top: 0; right: 0; width: 60%; height: 100%; z-index: 15; pointer-events: auto;
-        }
-
-        /* Tombol Dash */
         #dash-btn {
             position: absolute; bottom: 60px; right: 40px; width: 80px; height: 80px; 
             background: rgba(0, 255, 255, 0.3); border: 2px solid cyan; border-radius: 50%; 
@@ -79,8 +88,25 @@
 <body>
 
     <div id="start-screen">
-        <h1 style="color:white; text-align:center;">Testing</h1>
-        <p style="color:#aaa; text-align:center;">Eheeee<br></p>
+        <h1 style="color:white; text-align:center; margin-bottom: 10px;">DARK DUNGEON 3D</h1>
+        
+        <div class="instruction-box">
+            <h3>CARA BERMAIN</h3>
+            <p style="border-bottom: 1px solid #444; padding-bottom: 10px;">
+                <strong>PC / LAPTOP:</strong><br>
+                Gerak: <span class="key">W</span> <span class="key">S</span> &nbsp;|&nbsp; 
+                Putar: <span class="key">A</span> <span class="key">D</span><br>
+                Lari Cepat (Dash): <span class="key">SHIFT</span>
+            </p>
+            <p>
+                <strong>HP / MOBILE:</strong><br>
+                Jempol Kiri: Tombol <b>↑ ↓</b> untuk Jalan<br>
+                Jempol Kanan: <b>Geser Layar</b> untuk Putar<br>
+                Tombol <b>⚡</b> untuk Lari Cepat
+            </p>
+            
+        </div>
+
         <button id="start-btn">MULAI GAME</button>
     </div>
 
@@ -129,7 +155,7 @@
         startBtn.addEventListener('click', () => {
             bossAudio.play().then(() => {
                 bossAudio.pause(); bossAudio.currentTime = 0;
-            }).catch(e => console.log("Audio warning: " + e));
+            }).catch(e => console.log("Audio warning (cek live server): " + e));
 
             startScreen.style.display = 'none';
             gameState = 'EXPLORING';
@@ -249,7 +275,7 @@
             const btnBwd = document.getElementById('btn-bwd');
             const dashBtn = document.getElementById('dash-btn');
 
-            // 1. Tombol Jalan (Hanya set flag, tidak ganggu rotasi)
+            // Tombol Jalan
             btnFwd.addEventListener('touchstart', (e) => { e.preventDefault(); moveForward = true; });
             btnFwd.addEventListener('touchend', (e) => { e.preventDefault(); moveForward = false; });
             
@@ -258,19 +284,13 @@
             
             dashBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
 
-            // 2. Logic Rotasi (Mencari jari yang BUKAN di tombol)
+            // Logic Rotasi (Swipe di area kosong)
             document.addEventListener('touchstart', (e) => {
                 if(gameState === 'LOSE' || gameState === 'WIN') return;
-                
-                // Cek setiap jari yang baru menempel
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    
-                    // Cek apakah jari ini menekan elemen tombol?
-                    // Kita cek target element-nya.
                     const target = t.target;
-                    
-                    // Jika targetnya bukan tombol jalan/dash, maka itu jari rotasi
+                    // Jika jari tidak mengenai tombol apapun, jadikan jari rotasi
                     if (target !== btnFwd && target !== btnBwd && target !== dashBtn) {
                         rotationTouchId = t.identifier;
                         rotationLastX = t.clientX;
@@ -279,15 +299,10 @@
             }, { passive: false });
 
             document.addEventListener('touchmove', (e) => {
-                // Mencegah scroll halaman saat main
                 if(e.cancelable) e.preventDefault(); 
-                
                 if(gameState === 'LOSE' || gameState === 'WIN') return;
-
-                // Cari jari rotasi yang sedang bergerak
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    
                     if (t.identifier === rotationTouchId) {
                         const deltaX = t.clientX - rotationLastX;
                         playerGroup.rotation.y -= deltaX * touchSensitivity;
@@ -299,7 +314,7 @@
             document.addEventListener('touchend', (e) => {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === rotationTouchId) {
-                        rotationTouchId = null; // Jari rotasi diangkat
+                        rotationTouchId = null; 
                     }
                 }
             });
@@ -316,7 +331,6 @@
             setTimeout(() => { canDash = true; document.getElementById('dash-status').innerText = "DASH READY"; document.getElementById('dash-status').style.color = "cyan"; }, 1200);
         }
 
-        // Keyboard Controls
         document.addEventListener('keydown', (e) => {
             if(gameState === 'LOSE' || gameState === 'WIN') return;
             switch (e.code) {
