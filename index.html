@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Survival Testing</title>
+    <title>Survivals Test</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; touch-action: none; }
         
@@ -38,7 +38,7 @@
             pointer-events: auto; cursor: pointer; border: 2px solid white; z-index: 60;
         }
 
-        /* --- NEW MOBILE CONTROLS --- */
+        /* --- MOBILE CONTROLS --- */
         .mobile-btn-group {
             position: absolute; bottom: 40px; left: 30px;
             display: none; /* Hidden by default */
@@ -46,22 +46,29 @@
             z-index: 30; pointer-events: auto;
         }
         .move-btn {
-            width: 70px; height: 70px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid white; border-radius: 10px;
-            color: white; font-size: 30px; font-weight: bold;
+            width: 80px; height: 80px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255,255,255,0.5); border-radius: 15px;
+            color: white; font-size: 35px; font-weight: bold;
             display: flex; justify-content: center; align-items: center;
-            user-select: none; backdrop-filter: blur(2px);
+            user-select: none; backdrop-filter: blur(4px);
+            /* Penting agar browser tidak menganggap ini gesture zoom/scroll */
+            touch-action: none; 
         }
-        .move-btn:active { background: rgba(255, 255, 255, 0.5); }
+        .move-btn:active { background: rgba(0, 255, 0, 0.3); border-color: #00ff00; }
 
-        /* Tombol Dash (Kanan Bawah) */
+        /* Area Kanan untuk Rotasi (Invisible Zone) - Opsional agar lebih rapi */
+        #rotation-zone {
+            position: absolute; top: 0; right: 0; width: 60%; height: 100%; z-index: 15; pointer-events: auto;
+        }
+
+        /* Tombol Dash */
         #dash-btn {
             position: absolute; bottom: 60px; right: 40px; width: 80px; height: 80px; 
             background: rgba(0, 255, 255, 0.3); border: 2px solid cyan; border-radius: 50%; 
             color: cyan; font-size: 30px; line-height: 80px; text-align: center;
             font-weight: bold; cursor: pointer; user-select: none; z-index: 30; display: none; pointer-events: auto;
-            backdrop-filter: blur(2px); box-shadow: 0 0 10px cyan;
+            backdrop-filter: blur(2px); box-shadow: 0 0 10px cyan; touch-action: none;
         }
         #dash-btn:active { background: rgba(0, 255, 255, 0.8); color: white; }
         #dash-status {
@@ -73,7 +80,7 @@
 
     <div id="start-screen">
         <h1 style="color:white; text-align:center;">Testing</h1>
-        <p style="color:#aaa; text-align:center;">Ehe<br>Swipe layar untuk putar.</p>
+        <p style="color:#aaa; text-align:center;">Eheeee<br></p>
         <button id="start-btn">MULAI GAME</button>
     </div>
 
@@ -91,6 +98,7 @@
     <div id="dash-btn">⚡</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
     <script>
         // --- GAME VARIABLES ---
         let gameState = 'WAITING'; 
@@ -126,7 +134,7 @@
             startScreen.style.display = 'none';
             gameState = 'EXPLORING';
             
-            // Cek jika di mobile, tampilkan kontrol baru
+            // Cek jika di mobile, tampilkan kontrol
             if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
                 document.getElementById('mov-controls').style.display = 'flex';
                 document.getElementById('dash-btn').style.display = 'block';
@@ -223,7 +231,7 @@
         bossGroup.position.set(0, -50, 0); 
         scene.add(bossGroup);
 
-        // --- 7. INPUT & LOGIC (UPDATED) ---
+        // --- 7. INPUT & LOGIC ---
         let moveForward = false, moveBackward = false, turnLeft = false, turnRight = false;
         let canDash = true;
         let isDashing = false;
@@ -231,49 +239,71 @@
         const dashSpeed = 0.6; 
         let currentSpeed = normalSpeed;
 
-        // --- NEW MOBILE TOUCH LOGIC ---
-        let touchStartX = 0;
-        const touchSensitivity = 0.007; // Atur sensitivitas putaran di sini
+        // --- MULTI-TOUCH SYSTEM ---
+        let rotationTouchId = null;
+        let rotationLastX = 0;
+        const touchSensitivity = 0.007;
 
         if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            // A. Tombol Maju Mundur
             const btnFwd = document.getElementById('btn-fwd');
             const btnBwd = document.getElementById('btn-bwd');
             const dashBtn = document.getElementById('dash-btn');
 
+            // 1. Tombol Jalan (Hanya set flag, tidak ganggu rotasi)
             btnFwd.addEventListener('touchstart', (e) => { e.preventDefault(); moveForward = true; });
             btnFwd.addEventListener('touchend', (e) => { e.preventDefault(); moveForward = false; });
             
             btnBwd.addEventListener('touchstart', (e) => { e.preventDefault(); moveBackward = true; });
             btnBwd.addEventListener('touchend', (e) => { e.preventDefault(); moveBackward = false; });
-
+            
             dashBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerDash(); });
 
-            // B. Swipe Layar untuk Rotasi
+            // 2. Logic Rotasi (Mencari jari yang BUKAN di tombol)
             document.addEventListener('touchstart', (e) => {
-                // Hanya lacak sentuhan pertama untuk rotasi
-                if(e.touches.length === 1) {
-                    touchStartX = e.touches[0].clientX;
+                if(gameState === 'LOSE' || gameState === 'WIN') return;
+                
+                // Cek setiap jari yang baru menempel
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const t = e.changedTouches[i];
+                    
+                    // Cek apakah jari ini menekan elemen tombol?
+                    // Kita cek target element-nya.
+                    const target = t.target;
+                    
+                    // Jika targetnya bukan tombol jalan/dash, maka itu jari rotasi
+                    if (target !== btnFwd && target !== btnBwd && target !== dashBtn) {
+                        rotationTouchId = t.identifier;
+                        rotationLastX = t.clientX;
+                    }
                 }
-            }, false);
+            }, { passive: false });
 
             document.addEventListener('touchmove', (e) => {
-                 if(gameState === 'LOSE' || gameState === 'WIN') return;
-                 // Jika ada satu jari menggeser di layar
-                 if(e.touches.length === 1) {
-                     const touchCurrentX = e.touches[0].clientX;
-                     const deltaX = touchCurrentX - touchStartX;
-                     
-                     // Putar karakter berdasarkan jarak geser
-                     // Geser kiri (delta negatif) = putar positif (kiri)
-                     playerGroup.rotation.y -= deltaX * touchSensitivity;
-                     
-                     // Reset posisi awal untuk frame berikutnya agar gerakan mulus
-                     touchStartX = touchCurrentX;
-                 }
-            }, false);
+                // Mencegah scroll halaman saat main
+                if(e.cancelable) e.preventDefault(); 
+                
+                if(gameState === 'LOSE' || gameState === 'WIN') return;
+
+                // Cari jari rotasi yang sedang bergerak
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const t = e.changedTouches[i];
+                    
+                    if (t.identifier === rotationTouchId) {
+                        const deltaX = t.clientX - rotationLastX;
+                        playerGroup.rotation.y -= deltaX * touchSensitivity;
+                        rotationLastX = t.clientX;
+                    }
+                }
+            }, { passive: false });
+
+            document.addEventListener('touchend', (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === rotationTouchId) {
+                        rotationTouchId = null; // Jari rotasi diangkat
+                    }
+                }
+            });
         }
-        // ---------------------------
 
         function triggerDash() {
             if (!canDash || (gameState !== 'FIGHT' && gameState !== 'EXPLORING')) return;
@@ -286,13 +316,13 @@
             setTimeout(() => { canDash = true; document.getElementById('dash-status').innerText = "DASH READY"; document.getElementById('dash-status').style.color = "cyan"; }, 1200);
         }
 
-        // Keyboard Controls (Tetap ada untuk PC)
+        // Keyboard Controls
         document.addEventListener('keydown', (e) => {
             if(gameState === 'LOSE' || gameState === 'WIN') return;
             switch (e.code) {
                 case 'KeyW': moveForward = true; break;
                 case 'KeyS': moveBackward = true; break;
-                case 'KeyA': turnLeft = true; break; // Masih bisa pakai A/D di PC
+                case 'KeyA': turnLeft = true; break; 
                 case 'KeyD': turnRight = true; break;
                 case 'ShiftLeft': triggerDash(); break;
             }
@@ -374,10 +404,8 @@
             requestAnimationFrame(animate);
 
             if (gameState === 'EXPLORING' || gameState === 'FIGHT') {
-                // Keyboard turning still works on PC
                 if (turnLeft) playerGroup.rotation.y += 0.05;
                 if (turnRight) playerGroup.rotation.y -= 0.05;
-                // Note: Touch rotation is handled directly in the touchmove event listener
 
                 let drive = 0;
                 if (isDashing) drive = 1;
