@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flashbang Sync Effect</title>
+    <title>Actually IDK</title>
     <style>
         /* Reset & Layout */
         body {
@@ -17,7 +17,7 @@
             align-items: center;
             font-family: 'Courier New', Courier, monospace;
             overflow: hidden;
-            user-select: none; /* Supaya teks tidak terblok saat panik klik */
+            user-select: none; 
         }
 
         /* Container Tombol */
@@ -71,8 +71,8 @@
             color: white;
         }
 
-        /* Layer Putih (Effect Ledakan) */
-        #flash-overlay {
+   
+        #yoo-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -84,8 +84,8 @@
             z-index: 999; 
         }
 
-        /* Gambar Flashbang */
-        #flash-img {
+        /* Gambar yoobang */
+        #yoo-img {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -104,9 +104,9 @@
 </head>
 <body>
 
-    <img id="flash-img" src="flashbang.png" alt="GRANAT">
+    <img id="yoo-img" src="yoobang.png" alt="GRANAT">
 
-    <div id="flash-overlay"></div>
+    <div id="yoo-overlay"></div>
 
     <div class="container">
         <h1>PILIH NASIBMU</h1>
@@ -116,39 +116,34 @@
 
     <script>
         function startSequence() {
-            const img = document.getElementById('flash-img');
-            const overlay = document.getElementById('flash-overlay');
+            const img = document.getElementById('yoo-img');
+            const overlay = document.getElementById('yoo-overlay');
 
-            // TAHAP 1: Munculkan Granat (Tanpa Suara)
+          
             img.style.display = 'block';
 
-            // TAHAP 2: Tunggu 0.8 detik (800ms)
+      
             setTimeout(() => {
-                
-                // --- ACTION MELEDAK DIMULAI DI SINI ---
-                
-                // A. Hilangkan gambar granat
+           
                 img.style.display = 'none';
 
-                // B. Layar Putih Total (Instan)
-                overlay.style.transition = 'none'; // Matikan animasi biar instan putih
+             
+                overlay.style.transition = 'none'; 
                 overlay.style.opacity = '1';
 
-                // C. Mainkan Suara (Sinkron dengan layar putih)
                 playBeep();
 
-                // D. Mulai proses pemulihan (fading out)
-                // Beri jeda sangat sedikit (50ms) agar mata menangkap flash putihnya dulu
+              
                 setTimeout(() => {
-                    overlay.style.transition = 'opacity 3s ease-out'; // Memudar pelan selama 3 detik
+                    overlay.style.transition = 'opacity 3s ease-out'; 
                     overlay.style.opacity = '0';
                 }, 50);
 
-            }, 800); // Waktu tunggu lempar granat
+            }, 800); 
         }
 
         function playBeep() {
-            // Membuat AudioContext
+            
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
@@ -156,17 +151,17 @@
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            // Konfigurasi Suara
-            oscillator.type = 'sine'; // Gelombang sinus (paling mirip efek telinga berdenging)
-            oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); // Nada tinggi (1500Hz)
+        
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); 
             
-            // Volume sedikit fade out biar tidak memotong kasar
+         
             gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
 
-            // Mainkan suara
+      
             oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.5); // Stop setelah 0.5 detik
+            oscillator.stop(audioCtx.currentTime + 2); // Stop setelah 0.5 detik
         }
     </script>
 </body>
