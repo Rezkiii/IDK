@@ -3,166 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actually IDK</title>
+    <title>SYSTEM ACCESS :: COUNTDOWN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* Reset & Layout */
+        /* --- FUTURISTIC GLOBAL STYLES --- */
+        :root {
+            --neon-cyan: #00f7ff;
+            --deep-bg: #050510;
+            --panel-bg: rgba(10, 20, 40, 0.7);
+        }
+
         body {
-            margin: 0;
-            padding: 0;
-            background-color: black;
-            height: 100vh;
+            background-color: var(--deep-bg);
+            background-image: 
+                radial-gradient(circle at 50% 50%, #1a2a6c 0%, #050510 80%),
+                linear-gradient(rgba(0, 247, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 247, 255, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px, 20px 20px;
+            color: #ffffff;
+            font-family: 'Share Tech Mono', monospace; /* Font futuristik */
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            user-select: none; 
-        }
-
-        /* Container Tombol */
-        .container {
+            height: 100vh;
+            margin: 0;
             text-align: center;
-            z-index: 10;
+            overflow: hidden;
+            position: relative;
         }
 
-        h1 {
-            color: white;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-
-        /* Styling Tombol */
-        .btn {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
-            padding: 15px 40px;
-            margin: 0 15px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .btn:hover {
-            transform: scale(1.05);
-            background: white;
-            color: black;
-            box-shadow: 0 0 20px white;
-        }
-
-        .btn-red:hover {
-            border-color: #ff3333;
-            background: #ff3333;
-            box-shadow: 0 0 30px #ff3333;
-            color: white;
-        }
-
-        .btn-blue:hover {
-            border-color: #3333ff;
-            background: #3333ff;
-            box-shadow: 0 0 30px #3333ff;
-            color: white;
-        }
-
-   
-        #yoo-overlay {
-            position: fixed;
+        /* Efek Scanline Bergerak di layar */
+        body::after {
+            content: "";
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: white;
-            opacity: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom, 
+                transparent 50%, 
+                rgba(0, 247, 255, 0.05) 51%, 
+                transparent 51%
+            );
+            background-size: 100% 4px;
+            animation: scanlines 0.2s linear infinite;
             pointer-events: none;
-            z-index: 999; 
+            z-index: 1;
         }
 
-        /* Gambar yoobang */
-        #yoo-img {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            max-width: 300px;
-            display: none; 
-            z-index: 1000;
-            /* Sedikit animasi biar gambarnya gak kaku saat muncul */
-            animation: popIn 0.2s ease-out forwards;
+        .container {
+            position: relative;
+            z-index: 10;
+            padding: 2.5rem;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 5px;
+            background: var(--panel-bg);
+            /* Efek kaca buram dan cahaya neon */
+            backdrop-filter: blur(10px); 
+            box-shadow: 0 0 25px rgba(0, 247, 255, 0.3), inset 0 0 10px rgba(0, 247, 255, 0.1);
+            min-width: 320px;
+            max-width: 600px;
         }
 
-        @keyframes popIn {
-            to { transform: translate(-50%, -50%) scale(1); }
+        /* Hiasan sudut futuristik */
+        .container::before, .container::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--neon-cyan);
+        }
+        .container::before { top: -5px; left: -5px; border-right: none; border-bottom: none; }
+        .container::after { bottom: -5px; right: -5px; border-left: none; border-top: none; }
+
+        h1 {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px var(--neon-cyan);
+            position: relative;
+            display: inline-block;
+        }
+
+        /* Garis di bawah judul */
+        h1::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 2px;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+            margin-top: 5px;
+        }
+
+        /* --- TIMER PANEL STYLE --- */
+        .timer-panel {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .time-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 15px 10px;
+            border: 1px solid rgba(0, 247, 255, 0.3);
+            min-width: 70px;
+        }
+
+        .digit {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .label {
+            font-size: 0.7rem;
+            color: var(--neon-cyan);
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        /* --- REVEAL MESSAGE STYLE --- */
+        #sys-msg {
+            display: none;
+            font-size: 1.8rem;
+            color: var(--neon-cyan);
+            /* Animasi Glitch saat muncul */
+            animation: glitchIntro 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+            font-weight: bold;
+            text-shadow: 2px 2px 0px rgba(255,0,0,0.7), -2px -2px 0px rgba(0,0,255,0.7), 0 0 20px var(--neon-cyan);
+            padding: 20px;
+            border: 1px dashed var(--neon-cyan);
+            background: rgba(0, 247, 255, 0.05);
+        }
+
+        .footer-info {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 40px;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+        .footer-info span { color: var(--neon-cyan); }
+
+        /* --- ANIMATIONS --- */
+        @keyframes scanlines {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 4px; }
+        }
+
+        @keyframes glitchIntro {
+            0% { opacity: 0; transform: scale(0.8) skew(10deg); filter: blur(10px); }
+            20% { opacity: 1; transform: scale(1.1) skew(-10deg); filter: blur(0px); }
+            40% { transform: scale(0.9) skew(5deg); }
+            60% { transform: scale(1.05) skew(-5deg); text-shadow: 5px 0 rgba(255,0,0,0.8), -5px 0 rgba(0,0,255,0.8); }
+            80% { transform: scale(0.95) skew(2deg); }
+            100% { transform: scale(1) skew(0); }
+        }
+
+        /* Helper untuk menyembunyikan elemen saat selesai */
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
 
-    <img id="yoo-img" src="flashbang.png" alt="GRANAT">
-
-    <div id="yoo-overlay"></div>
-
     <div class="container">
-        <h1>PILIH SALAH SATU</h1>
-        <button class="btn btn-blue" onclick="startSequence()">Tombol A</button>
-        <button class="btn btn-red" onclick="startSequence()">Tombol B</button>
+        <h1 id="hdr-title">>> SYSTEM STATUS: LOCKED</h1>
+        
+        <div id="timer-container" class="timer-panel">
+            <div class="time-block">
+                <span id="d" class="digit">00</span>
+                <span class="label">DAYS</span>
+            </div>
+            <div class="time-block">
+                <span id="h" class="digit">00</span>
+                <span class="label">HRS</span>
+            </div>
+            <div class="time-block">
+                <span id="m" class="digit">00</span>
+                <span class="label">MIN</span>
+            </div>
+            <div class="time-block">
+                <span id="s" class="digit">00</span>
+                <span class="label">SEC</span>
+            </div>
+        </div>
+        
+        <div id="sys-msg"></div>
+        
+        <div class="footer-info">Target Synchronization: <span>29 JAN 2026</span></div>
     </div>
 
     <script>
-        function startSequence() {
-            const img = document.getElementById('yoo-img');
-            const overlay = document.getElementById('yoo-overlay');
+        // Enkripsi 4x tetap dipertahankan
+        const _k0x = "VjJweGVWWlhUblJoTW1SYVlXMXRhR3hZV0dSM1lrdFdWVlZKU1VORU5XOW1iR1JXV2tKMFVtNVNhMVZVTURrPQ==";
+        const _tDate = new Date("Jan 29, 2026 00:00:00").getTime();
 
-          
-            img.style.display = 'block';
-
-      
-            setTimeout(() => {
-           
-                img.style.display = 'none';
-
-             
-                overlay.style.transition = 'none'; 
-                overlay.style.opacity = '1';
-
-                playBeep();
-
-              
-                setTimeout(() => {
-                    overlay.style.transition = 'opacity 3s ease-out'; 
-                    overlay.style.opacity = '0';
-                }, 50);
-
-            }, 800); 
+        // Fungsi helper untuk menambah angka 0 di depan jika < 10
+        function _pad(n) {
+            return n < 10 ? '0' + n : n;
         }
 
-        function playBeep() {
-            
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
+        const _int = setInterval(function() {
+            const _now = new Date().getTime();
+            const _dist = _tDate - _now;
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            const _d = Math.floor(_dist / (1000 * 60 * 60 * 24));
+            const _h = Math.floor((_dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const _m = Math.floor((_dist % (1000 * 60 * 60)) / (1000 * 60));
+            const _s = Math.floor((_dist % (1000 * 60)) / 1000);
 
-        
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(1500, audioCtx.currentTime); 
-            
-         
-            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1);
+            // Update tampilan panel digital baru
+            document.getElementById("d").innerText = _pad(_d);
+            document.getElementById("h").innerText = _pad(_h);
+            document.getElementById("m").innerText = _pad(_m);
+            document.getElementById("s").innerText = _pad(_s);
 
-      
-            oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 2); // Stop setelah 0.5 detik
-        }
+            // JIKA WAKTU HABIS
+            if (_dist < 0) {
+                clearInterval(_int);
+                
+                try {
+                    let _res = atob(_k0x);
+                    _res = atob(_res);
+                    _res = atob(_res);
+                    const _final = atob(_res);
+
+                    // Ubah Judul Status
+                    document.getElementById("hdr-title").innerText = ">> SYSTEM STATUS: UNLOCKED";
+                    document.getElementById("hdr-title").style.color = "#ff2a6d"; // Ubah warna judul jadi merah muda neon
+
+                    // Sembunyikan panel timer
+                    document.getElementById("timer-container").classList.add("hidden");
+                    
+                    // Tampilkan pesan dengan efek glitch
+                    const _el = document.getElementById("sys-msg");
+                    _el.innerText = ">> " + _final.toUpperCase() + " <<";
+                    _el.style.display = "block";
+                    
+                } catch (e) {
+                    console.log("Err: Decryption Failure");
+                }
+            }
+        }, 1000);
     </script>
 </body>
 </html>
